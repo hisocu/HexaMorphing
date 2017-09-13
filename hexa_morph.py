@@ -110,7 +110,7 @@ def gen_blender(values, opp_flags):
 
 def hexa_morph(target, bases, values, opp_flags=(False, ) * 6):
     bases_list = [
-        bases[(i + 3) % 3] if opp_flags[i] else bases[i]
+        bases[(i + 3) % 6] if opp_flags[i] else bases[i]
         for i in range(len(bases))
     ]
 
