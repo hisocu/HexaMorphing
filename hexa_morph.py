@@ -84,14 +84,18 @@ def gen_loop_mapper(target, base):
     fst = search_first(target.loops)
     mapper = gen_mapper(target, base)
 
-    return (lambda i: target.loops[fst + mapper(i)].vertex_index)
+    return (
+        lambda i: target.loops[(fst + mapper(i)) % len(target.loops)].vertex_index
+    )
 
 
 def gen_rev_loop_mapper(target, base):
     fst = search_first(target.loops)
     mapper = gen_mapper(target, base)
 
-    return (lambda i: target.loops[-(fst + mapper(i) + 1)].vertex_index)
+    return (
+        lambda i: target.loops[-((fst + mapper(i)) % len(target.loops) + 1)].vertex_index
+    )
 
 
 def gen_blender(values, opp_flags):
