@@ -13,19 +13,19 @@ bl_info = {
 }
 
 if "bpy" in locals():
-    import imp
-    imp.reload(ui)
-    imp.reload(property)
-    imp.reload(hexa_morph)
-    imp.reload(base_operator)
-    imp.reload(toggle_morphing)
+    import importlib
+    importlib.reload(ui)
+    importlib.reload(property)
+    importlib.reload(hexa_morphing)
+    importlib.reload(base_operator)
+    importlib.reload(morphing_operator)
 
 else:
     from .ui import *
     from .property import *
-    from .hexa_morph import *
+    from .hexa_morphing import *
     from .base_operator import *
-    from .toggle_morphing import *
+    from .morphing_operator import *
 
 import bpy
 

@@ -1,7 +1,7 @@
 import bpy
-from .toggle_morphing import *
+from .morphing_operator import *
 from .base_operator import *
-from .hexa_morph import *
+from .hexa_morphing import *
 
 
 class VIEW3D_PT_HMTools(bpy.types.Panel):
