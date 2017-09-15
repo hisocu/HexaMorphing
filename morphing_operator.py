@@ -12,7 +12,8 @@ def handler(scene):
 
                 if morphp.values.use_dir_obj:
                     dir_obj = bpy.data.objects[morphp.values.dir_obj_name]
-                    to_vec = dir_obj.matrix_world.translation - target.matrix_world.translation
+                    to_vec = (target.matrix_world * dir_obj.matrix_world.
+                              translation) - target.matrix_world.translation
                     x, y, z = to_vec
 
                 bases = [
