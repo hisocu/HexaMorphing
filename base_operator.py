@@ -1,14 +1,14 @@
 import bpy
 
-tag_enum_items = [("px", "+X", "", 0), ("py", "+Y", "", 1),
-                  ("pz", "+Z", "", 2), ("mx", "-X", "", 3),
-                  ("my", "-Y", "", 4), ("mz", "-Z", "", 5)]
+tag_enum_items = [('px', '+X', '', 0), ('py', '+Y', '', 1),
+                  ('pz', '+Z', '', 2), ('mx', '-X', '', 3),
+                  ('my', '-Y', '', 4), ('mz', '-Z', '', 5)]
 
 
 class RegisterBase(bpy.types.Operator):
-    bl_idname = "object.register_base"
-    bl_label = "RegisterBase"
-    bl_description = "RegisterBase"
+    bl_idname = 'object.register_base'
+    bl_label = 'RegisterBase'
+    bl_description = 'RegisterBase'
     bl_options = {'REGISTER', 'UNDO'}
 
     tag = bpy.props.EnumProperty(items=tag_enum_items)
@@ -29,9 +29,9 @@ class RegisterBase(bpy.types.Operator):
 
 
 class CopyBase(bpy.types.Operator):
-    bl_idname = "object.copy_base"
-    bl_label = "CopyBase"
-    bl_description = "CopyBase"
+    bl_idname = 'object.copy_base'
+    bl_label = 'CopyBase'
+    bl_description = 'CopyBase'
     bl_options = {'REGISTER', 'UNDO'}
 
     tag = bpy.props.EnumProperty(items=tag_enum_items)

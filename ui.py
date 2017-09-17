@@ -59,7 +59,7 @@ class VIEW3D_PT_HMProps(bpy.types.Panel):
 
         layout.enabled = morphp.enable
 
-        labels = ["X", "Y", "Z"]
+        labels = ['X', 'Y', 'Z']
 
         opp_flag = usable_opposite(object.data)
 
@@ -67,21 +67,21 @@ class VIEW3D_PT_HMProps(bpy.types.Panel):
             box = layout.box()
             row = box.row()
 
-            for lb in [s + label for s in "-+"]:
+            for lb in [s + label for s in '-+']:
                 sub_box = row.box()
 
                 column = sub_box.column(align=True)
-                column.label(text=lb + ":")
+                column.label(text=lb + ':')
 
                 col1 = column.column(align=True)
                 col1.operator(
                     RegisterBase.bl_idname,
-                    text="register base").tag = tag_map(lb)
+                    text='register base').tag = tag_map(lb)
                 col1.operator(
-                    CopyBase.bl_idname, text="copy base").tag = tag_map(lb)
+                    CopyBase.bl_idname, text='copy base').tag = tag_map(lb)
 
                 col2 = column.column(align=True)
-                col2.prop(getattr(morphp.bases, tag_map(lb)), "use_opp_side")
+                col2.prop(getattr(morphp.bases, tag_map(lb)), 'use_opp_side')
 
                 col1.enabled = not getattr(morphp.bases,
                                            tag_map(lb)).use_opp_side
@@ -95,8 +95,8 @@ class VIEW3D_PT_HMProps(bpy.types.Panel):
 
         column = layout.column(align=True)
 
-        layout.prop(morphp.values, "use_dir_obj", text="use direction object")
+        layout.prop(morphp.values, 'use_dir_obj', text='use direction object')
         column = layout.column(align=True)
         column.prop_search(
-            morphp.values, "dir_obj_name", scene, "objects", text="")
+            morphp.values, 'dir_obj_name', scene, 'objects', text='')
         column.enabled = morphp.values.use_dir_obj
