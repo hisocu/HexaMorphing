@@ -4,6 +4,8 @@ import bpy
 class HMControl(bpy.types.PropertyGroup):
     running = bpy.props.BoolProperty()
     rendering_only = bpy.props.BoolProperty(default=True)
+    interval = bpy.props.FloatProperty(
+        min=1. / 60., default=0.1, step=1, precision=3)
 
 
 class HMVertex(bpy.types.PropertyGroup):
