@@ -18,7 +18,7 @@ def safe_divide(x, y, default=0):
     return default if y == 0 else x / y
 
 
-def gen_coefficient_matrices(values):
+def calc_coefficient_matrices(values):
     assert len(values) == 3, 'size error'
 
     vec = np.array(values)
@@ -99,7 +99,7 @@ def gen_rev_loop_mapper(target, base):
 
 
 def gen_blender(values, opp_flags):
-    coef_mats = gen_coefficient_matrices(values)
+    coef_mats = calc_coefficient_matrices(values)
     coef_mats = [[(-1 if flag and i % 3 == j else 1) * mat[j]
                   for j in range(3)]
                  for i, (mat, flag) in enumerate(zip(coef_mats, opp_flags))]
