@@ -6,15 +6,14 @@ from .hexa_morphing import *
 def handler(scene):
     try:
         for target in bpy.data.objects:
-            if target.morph_param.enable:
-                morphp = target.morph_param
-                x, y, z = morphp.values.x, morphp.values.y, morphp.values.z
+            morphp = target.morph_param
 
-                if morphp.values.use_dir_obj:
-                    dir_obj = bpy.data.objects[morphp.dir_obj_name]
-                    to_vec = (target.matrix_world * dir_obj.matrix_world.
-                              translation) - target.matrix_world.translation
-                    x, y, z = to_vec
+            if morphp.enable and morphp.dir_obj_name != "":
+
+                dir_obj = bpy.data.objects[morphp.dir_obj_name]
+                to_vec = (target.matrix_world * dir_obj.matrix_world.
+                          translation) - target.matrix_world.translation
+                x, y, z = to_vec
 
                 bases = [
                     getattr(morphp.bases, s + a) for s in 'pm' for a in 'xyz'
@@ -29,7 +28,9 @@ def handler(scene):
                     for base, opp_flag in zip(bases, opp_flags)
                 ]
 
-                hexa_morph(target.data, bases, (x, y, z), opp_flags)
+                hexa_morph(target.data, bases, (x, y, z), opp_flags,
+                           (morphp.x_reversible, morphp.y_reversible,
+                            morphp.z_reversible))
 
                 target.data.update()
 
