@@ -8,13 +8,10 @@ def handler(scene):
         for target in bpy.data.objects:
             if target.morph_param.enable:
                 morphp = target.morph_param
-                x, y, z = morphp.values.x, morphp.values.y, morphp.values.z
-
-                if morphp.values.use_dir_obj:
-                    dir_obj = bpy.data.objects[morphp.values.dir_obj_name]
-                    to_vec = (target.matrix_world * dir_obj.matrix_world.
-                              translation) - target.matrix_world.translation
-                    x, y, z = to_vec
+                dir_obj = bpy.data.objects[morphp.values.dir_obj_name]
+                to_vec = (target.matrix_world * dir_obj.matrix_world.
+                          translation) - target.matrix_world.translation
+                x, y, z = to_vec
 
                 bases = [
                     getattr(morphp.bases, s + a) for s in 'pm' for a in 'xyz'

@@ -4,8 +4,6 @@ import bpy
 class HMControl(bpy.types.PropertyGroup):
     running = bpy.props.BoolProperty()
     rendering_only = bpy.props.BoolProperty(default=True)
-    interval = bpy.props.FloatProperty(
-        min=1. / 60., default=0.1, step=1, precision=3)
 
 
 class HMVertex(bpy.types.PropertyGroup):
@@ -26,16 +24,7 @@ class HMBases(bpy.types.PropertyGroup):
     mz = bpy.props.PointerProperty(type=HMBase)
 
 
-class HMValues(bpy.types.PropertyGroup):
-    use_dir_obj = bpy.props.BoolProperty()
-    dir_obj_name = bpy.props.StringProperty()
-
-    x = bpy.props.FloatProperty(min=-1, max=1)
-    y = bpy.props.FloatProperty(min=-1, max=1)
-    z = bpy.props.FloatProperty(min=-1, max=1)
-
-
 class HMParam(bpy.types.PropertyGroup):
     bases = bpy.props.PointerProperty(type=HMBases)
-    values = bpy.props.PointerProperty(type=HMValues)
     enable = bpy.props.BoolProperty()
+    dir_obj_name = bpy.props.StringProperty()
