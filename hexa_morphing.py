@@ -7,15 +7,12 @@ def usable_opposite(mesh):
     return len(mesh.polygons) == 1
 
 
-def search_first(loops):
-    for i in range(len(loops)):
-        if loops[i].vertex_index == 0:
-            return i
-    raise
-
-
 def safe_divide(x, y, default=0):
     return default if y == 0 else x / y
+
+
+def sign(x):
+    return safe_divide(x, abs(x), 1)
 
 
 def calc_coefficient_matrices(values):
@@ -44,6 +41,93 @@ def calc_coefficient_matrices(values):
     ]
 
 
+def gen_blender(values, *_):
+    coef_mats = calc_coefficient_matrices(values)
+
+    return (
+        lambda bases: mu.Vector(np.einsum('ijk, ik -> j', coef_mats, bases)))
+
+
+def gen_rmo_blender(values, opposite_flags, *_):
+    coef_mats = calc_coefficient_matrices(values)
+
+    for i in range(6):
+        if opposite_flags[i]:
+            coef_mats[i][i % 3] *= -1
+
+    return (
+        lambda bases: mu.Vector(np.einsum('ijk, ik -> j', coef_mats, bases)))
+
+
+def gen_rbo_blender(values, opposite_flags, reversible_axis, *_):
+    coef_mats = calc_coefficient_matrices(values)
+
+    for i in range(6):
+        if opposite_flags[i]:
+            coef_mats[i][i % 3] *= -1
+
+        for j in range(3):
+            if reversible_axis == 'xyz' [j] and i % 3 != j:
+                if opposite_flags[i]:
+                    coef_mats[i][j] *= -1
+
+                if opposite_flags[j]:
+                    coef_mats[i][j] *= -sign(values[j])
+                elif opposite_flags[j + 3]:
+                    coef_mats[i][j] *= sign(values[j])
+
+    return (
+        lambda bases: mu.Vector(np.einsum('ijk, ik -> j', coef_mats, bases)))
+
+
+def search_first(loops):
+    for i in range(len(loops)):
+        if loops[i].vertex_index == 0:
+            return i
+    raise
+
+
+def gen_mapper(target, base, *_):
+    return (
+        lambda i: round(i * (len(base.vertices) - 1) / (len(target.vertices) - 1))
+    )
+
+
+def gen_loop_mapper(target, base, *_):
+    fst = search_first(target.loops)
+    mapper = gen_mapper(target, base)
+
+    return (
+        lambda i: target.loops[(fst + mapper(i)) % len(target.loops)].vertex_index
+    )
+
+
+def gen_rev_loop_mapper(target, base, *_):
+    fst = search_first(target.loops)
+    mapper = gen_mapper(target, base)
+
+    return (
+        lambda i: target.loops[-((fst + mapper(i)) % len(target.loops) + 1)].vertex_index
+    )
+
+
+def is_oppopsite_loop_mappable(target):
+    return len(target.polygons) == 1
+
+
+def is_reverse_mapping_omittable(target, opposite_flags):
+    return is_oppopsite_loop_mappable(target) and True in opposite_flags
+
+
+def is_reverse_base_omittable(target, opposite_flags, reversible_axis):
+    return is_reverse_mapping_omittable(target,
+                                        opposite_flags) and reversible_axis in 'xyz'
+
+
+def complement_bases(bases, opposite_flags):
+    return [bases[(i + 3) % 6] if opposite_flags[i] else bases[i] for i in range(6)]
+
+
 def map_blend(target, bases, blender, mappers):
     for i in range(len(target.vertices)):
         base_cos = [
@@ -68,63 +152,25 @@ def planarize(target, bases, values, blender):
         tar_vec.co -= tar_vec.co.project(vec) - tfpv
 
 
-def gen_mapper(target, base):
-    return (
-        lambda i: round(i * (len(base.vertices) - 1) / (len(target.vertices) - 1))
-    )
+def hexa_morph(target, bases, values, opposite_flags, reversible_axis):
+    blender = gen_blender
+    mapper, rev_mapper = (gen_mapper, ) * 2
 
+    if is_reverse_mapping_omittable(target, opposite_flags):
+        blender = gen_rmo_blender
+        bases = complement_bases(bases, opposite_flags)
+        mapper, rev_mapper = gen_loop_mapper, gen_rev_loop_mapper
 
-def gen_rev_mapper(target, base):
-    mapper = gen_mapper(target, base)
+        if is_reverse_base_omittable(target, opposite_flags, reversible_axis):
+            blender = gen_rbo_blender
+            rev_mapper = gen_loop_mapper
 
-    return (lambda i: -(mapper(i) + 1))
-
-
-def gen_loop_mapper(target, base):
-    fst = search_first(target.loops)
-    mapper = gen_mapper(target, base)
-
-    return (
-        lambda i: target.loops[(fst + mapper(i)) % len(target.loops)].vertex_index
-    )
-
-
-def gen_rev_loop_mapper(target, base):
-    fst = search_first(target.loops)
-    mapper = gen_mapper(target, base)
-
-    return (
-        lambda i: target.loops[-((fst + mapper(i)) % len(target.loops) + 1)].vertex_index
-    )
-
-
-def gen_blender(values, opp_flags):
-    coef_mats = calc_coefficient_matrices(values)
-    coef_mats = [[(-1 if flag and i % 3 == j else 1) * mat[j]
-                  for j in range(3)]
-                 for i, (mat, flag) in enumerate(zip(coef_mats, opp_flags))]
-
-    return (
-        lambda bases: mu.Vector(np.einsum('ijk, ik -> j', coef_mats, bases)))
-
-
-def hexa_morph(target, bases, values, opp_flags=(False, ) * 6):
-    bases_list = [
-        bases[(i + 3) % 6] if opp_flags[i] else bases[i]
-        for i in range(len(bases))
+    blend = blender(values, opposite_flags, reversible_axis)
+    maps = [mapper(target, target)] + [
+        rev_mapper(target, base) if flag else mapper(target, base)
+        for base, flag in zip(bases, opposite_flags)
     ]
 
-    blender = gen_blender(values, opp_flags)
+    map_blend(target, bases, blend, maps)
 
-    mapper, rev_mapper = (gen_loop_mapper,
-                          gen_rev_loop_mapper) if True in opp_flags else (
-                              gen_mapper, gen_rev_mapper)
-
-    mappers = [mapper(target, target)] + [
-        rev_mapper(target, base) if opp_flag else mapper(target, base)
-        for base, opp_flag in zip(bases_list, opp_flags)
-    ]
-
-    map_blend(target, bases_list, blender, mappers)
-
-    planarize(target, bases_list, values, blender)
+    planarize(target, bases, values, blend)

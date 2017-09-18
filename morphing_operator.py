@@ -28,9 +28,7 @@ def handler(scene):
                     for base, opp_flag in zip(bases, opp_flags)
                 ]
 
-                hexa_morph(target.data, bases, (x, y, z), opp_flags,
-                           (morphp.x_reversible, morphp.y_reversible,
-                            morphp.z_reversible))
+                hexa_morph(target.data, bases, (x, y, z), opp_flags, morphp.reversible)
 
                 target.data.update()
 

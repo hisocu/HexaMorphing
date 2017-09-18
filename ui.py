@@ -62,9 +62,9 @@ class VIEW3D_PT_HMProps(bpy.types.Panel):
         column = layout.column(align=True)
         column.label(text='direction object:')
         column.prop_search(morphp, 'dir_obj_name', scene, 'objects', text='')
-        
+
         layout.separator()
-        
+
         labels = 'XYZ'
 
         opp_flag = usable_opposite(object.data)
@@ -91,6 +91,12 @@ class VIEW3D_PT_HMProps(bpy.types.Panel):
 
                 col1.enabled = not getattr(morphp.bases,
                                            tag_map(lb)).use_opp_side
-                col2.enabled = opp_flag
+                col2.enabled = opp_flag and not getattr(
+                    morphp.bases,
+                    {'-': 'p',
+                     '+': 'm'}[lb[0]] + lb[1].lower()).use_opp_side
 
+        layout.separator()
 
+        column = layout.column(align=True)
+        column.prop(morphp, 'reversible')
