@@ -32,4 +32,6 @@ class HMParam(bpy.types.PropertyGroup):
     bases = bpy.props.PointerProperty(type=HMBases)
     dir_obj_name = bpy.props.StringProperty()
 
-    reversible = bpy.props.EnumProperty(items=[('n','N','',0),('x','X','',1),('y','Y','',2),('z','Z','',3)])
+    reversible = bpy.props.EnumProperty(
+        items=[('n', 'N', '', 0),
+               ('x', 'X', '', 1), ('y', 'Y', '', 2), ('z', 'Z', '', 3)])

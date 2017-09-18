@@ -67,8 +67,7 @@ class VIEW3D_PT_HMProps(bpy.types.Panel):
 
         labels = 'XYZ'
 
-        opp_flag = usable_opposite(object.data)
-
+        opp_flag = is_opposite_loop_mappable(object.data)
         for label in labels:
             box = layout.box()
             row = box.row()

@@ -19,8 +19,8 @@ def handler(scene):
                     getattr(morphp.bases, s + a) for s in 'pm' for a in 'xyz'
                 ]
                 opp_flags = [
-                    usable_opposite(target.data) and base.use_opp_side
-                    for base in bases
+                    is_opposite_loop_mappable(target.data)
+                    and base.use_opp_side for base in bases
                 ]
                 bases = [
                     target.data
@@ -28,12 +28,10 @@ def handler(scene):
                     for base, opp_flag in zip(bases, opp_flags)
                 ]
 
-                hexa_morph(target.data, bases, (x, y, z), opp_flags, morphp.reversible)
+                hexa_morph(target.data, bases, (x, y, z), opp_flags,
+                           morphp.reversible)
 
                 target.data.update()
-
-            if bpy.context.area:
-                bpy.context.area.tag_redraw()
 
     except:
         for info in sys.exc_info():

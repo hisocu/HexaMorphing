@@ -3,10 +3,6 @@ import mathutils as mu
 import numpy as np
 
 
-def usable_opposite(mesh):
-    return len(mesh.polygons) == 1
-
-
 def safe_divide(x, y, default=0):
     return default if y == 0 else x / y
 
@@ -80,7 +76,7 @@ def gen_rbo_blender(values, opposite_flags, reversible_axis, *_):
         lambda bases: mu.Vector(np.einsum('ijk, ik -> j', coef_mats, bases)))
 
 
-def search_first(loops):
+def search_loop_start(loops):
     for i in range(len(loops)):
         if loops[i].vertex_index == 0:
             return i
@@ -94,7 +90,7 @@ def gen_mapper(target, base, *_):
 
 
 def gen_loop_mapper(target, base, *_):
-    fst = search_first(target.loops)
+    fst = search_loop_start(target.loops)
     mapper = gen_mapper(target, base)
 
     return (
@@ -103,7 +99,7 @@ def gen_loop_mapper(target, base, *_):
 
 
 def gen_rev_loop_mapper(target, base, *_):
-    fst = search_first(target.loops)
+    fst = search_loop_start(target.loops)
     mapper = gen_mapper(target, base)
 
     return (
@@ -111,21 +107,23 @@ def gen_rev_loop_mapper(target, base, *_):
     )
 
 
-def is_oppopsite_loop_mappable(target):
+def is_opposite_loop_mappable(target):
     return len(target.polygons) == 1
 
 
 def is_reverse_mapping_omittable(target, opposite_flags):
-    return is_oppopsite_loop_mappable(target) and True in opposite_flags
+    return is_opposite_loop_mappable(target) and True in opposite_flags
 
 
 def is_reverse_base_omittable(target, opposite_flags, reversible_axis):
-    return is_reverse_mapping_omittable(target,
-                                        opposite_flags) and reversible_axis in 'xyz'
+    return is_reverse_mapping_omittable(
+        target, opposite_flags) and reversible_axis in 'xyz'
 
 
 def complement_bases(bases, opposite_flags):
-    return [bases[(i + 3) % 6] if opposite_flags[i] else bases[i] for i in range(6)]
+    return [
+        bases[(i + 3) % 6] if opposite_flags[i] else bases[i] for i in range(6)
+    ]
 
 
 def map_blend(target, bases, blender, mappers):
