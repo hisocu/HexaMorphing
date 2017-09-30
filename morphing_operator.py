@@ -1,41 +1,30 @@
 import bpy
-import sys
-from .hexa_morphing import *
+import sys, traceback
+import mathutils as mu
+from functools import partial
+from .tri_morphing import *
 
 
-def handler(scene):
+def handler(target_handlers, scene):
     try:
+        i = 0
         for target in bpy.data.objects:
             morphp = target.morph_param
 
             if morphp.enable and morphp.dir_obj_name != "":
-
                 dir_obj = bpy.data.objects[morphp.dir_obj_name]
-                to_vec = (target.matrix_world * dir_obj.matrix_world.
-                          translation) - target.matrix_world.translation
+                to_vec = (target.matrix_world * dir_obj.matrix_world.translation) - target.matrix_world.translation
                 x, y, z = to_vec
 
-                bases = [
-                    getattr(morphp.bases, s + a) for s in 'pm' for a in 'xyz'
-                ]
-                opp_flags = [
-                    is_opposite_loop_mappable(target.data)
-                    and base.use_opp_side for base in bases
-                ]
-                bases = [
-                    target.data
-                    if not opp_flag and len(base.vertices) == 0 else base
-                    for base, opp_flag in zip(bases, opp_flags)
-                ]
-
-                hexa_morph(target.data, bases, (x, y, z), opp_flags,
-                           morphp.reversible)
+                target_handlers[i % len(target_handlers)]((x, y, z))
+                i += 1
 
                 target.data.update()
 
     except:
         for info in sys.exc_info():
             print(info)
+            print(traceback.format_exc())
         return
 
 
@@ -46,13 +35,13 @@ class ToggleMorphing(bpy.types.Operator):
 
     def __init__(self):
         self.__timer = None
+        self.__handler = None
 
     def __add_timer_handler(self, context):
         morphc = context.scene.morph_ctrl
 
         if self.__timer is None:
-            self.__timer = context.window_manager.event_timer_add(
-                morphc.interval, context.window)
+            self.__timer = context.window_manager.event_timer_add(morphc.interval, context.window)
             context.window_manager.modal_handler_add(self)
 
     def __remove_timer_handler(self, context):
@@ -61,14 +50,11 @@ class ToggleMorphing(bpy.types.Operator):
             self.__timer = None
 
     def __add_app_handler(self, context):
-        bpy.app.handlers.frame_change_post.append(handler)
+        bpy.app.handlers.frame_change_post.append(self.__handler)
 
     def __remove_app_handler(self, context):
-        for handle in bpy.app.handlers.scene_update_post:
-            if handle.__name__ == 'handler':
-                bpy.app.handlers.frame_change_post.remove(handle)
-
-                break
+        while self.__handler in bpy.app.handlers.frame_change_post:
+            bpy.app.handlers.frame_change_post.remove(self.__handler)
 
     @classmethod
     def poll(cls, context):
@@ -88,7 +74,7 @@ class ToggleMorphing(bpy.types.Operator):
 
             return {'FINISHED'}
 
-        handler(context.scene)
+        self.__handler(context.scene)
 
         return {'PASS_THROUGH'}
 
@@ -110,6 +96,21 @@ class ToggleMorphing(bpy.types.Operator):
                     self.__add_timer_handler(context)
 
                 morphc.running = True
+
+                target_handlers = []
+
+                for target in bpy.data.objects:
+                    morphp = target.morph_param
+
+                    if morphp.enable and is_opposite_loop_mappable(target.data):
+                        bases = list(map(partial(getattr, morphp.bases), 'xyz')) * 2
+                        reference_axis = {'x': 0, 'y': 1, 'z': 2}[morphp.reference]
+
+                        front_vgetters, back_vgetters = gen_fb_vertex_getters(target.data, bases, reference_axis)
+
+                        target_handlers.append(partial(tri_morph, target.data, front_vgetters, back_vgetters, reference_axis))
+
+                self.__handler = partial(handler, target_handlers)
 
                 return {'RUNNING_MODAL'}
 

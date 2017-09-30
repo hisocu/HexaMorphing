@@ -1,11 +1,11 @@
 import bpy
 from .morphing_operator import *
 from .base_operator import *
-from .hexa_morphing import *
+from .tri_morphing import *
 
 
 class VIEW3D_PT_HMTools(bpy.types.Panel):
-    bl_label = 'Hexa Morphing'
+    bl_label = 'Tri Morphing'
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
     bl_context = 'objectmode'
@@ -31,7 +31,7 @@ class VIEW3D_PT_HMTools(bpy.types.Panel):
 
 
 class VIEW3D_PT_HMProps(bpy.types.Panel):
-    bl_label = 'Hexa Morphing'
+    bl_label = 'Tri Morphing'
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_context = 'objectmode'
@@ -40,7 +40,7 @@ class VIEW3D_PT_HMProps(bpy.types.Panel):
     @classmethod
     def poll(cls, context):
         for object in bpy.data.objects:
-            if object.select and object.type == 'MESH':
+            if object.select and object.type == 'MESH' and is_opposite_loop_mappable(object.data):
                 return True
         return False
 
@@ -49,9 +49,6 @@ class VIEW3D_PT_HMProps(bpy.types.Panel):
         layout.prop(context.active_object.morph_param, 'enable', text='')
 
     def draw(self, context):
-        def tag_map(e):
-            return {'+': 'p', '-': 'm'}[e[0]] + e[1].lower()
-
         layout = self.layout
         scene = context.scene
         object = context.object
@@ -68,34 +65,21 @@ class VIEW3D_PT_HMProps(bpy.types.Panel):
         labels = 'XYZ'
 
         opp_flag = is_opposite_loop_mappable(object.data)
+        box = layout.box()
+
         for label in labels:
-            box = layout.box()
             row = box.row()
+            sub_box = row.box()
 
-            for lb in [s + label for s in '-+']:
-                sub_box = row.box()
+            column = sub_box.column(align=True)
+            column.label(text=label + ':')
 
-                column = sub_box.column(align=True)
-                column.label(text=lb + ':')
-
-                col1 = column.column(align=True)
-                col1.operator(
-                    RegisterBase.bl_idname,
-                    text='register base').tag = tag_map(lb)
-                col1.operator(
-                    CopyBase.bl_idname, text='copy base').tag = tag_map(lb)
-
-                col2 = column.column(align=True)
-                col2.prop(getattr(morphp.bases, tag_map(lb)), 'use_opp_side')
-
-                col1.enabled = not getattr(morphp.bases,
-                                           tag_map(lb)).use_opp_side
-                col2.enabled = opp_flag and not getattr(
-                    morphp.bases,
-                    {'-': 'p',
-                     '+': 'm'}[lb[0]] + lb[1].lower()).use_opp_side
+            column = column.column(align=True)
+            column.operator(RegisterBase.bl_idname, text='register base').tag = label.lower()
+            column.operator(CopyBase.bl_idname, text='copy base').tag = label.lower()
 
         layout.separator()
 
         column = layout.column(align=True)
         column.prop(morphp, 'reversible')
+        column.prop(morphp, 'reference')

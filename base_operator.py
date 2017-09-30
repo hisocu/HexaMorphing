@@ -1,8 +1,8 @@
 import bpy
+import numpy as np
+from .tri_morphing import *
 
-tag_enum_items = [('px', '+X', '', 0), ('py', '+Y', '', 1),
-                  ('pz', '+Z', '', 2), ('mx', '-X', '', 3),
-                  ('my', '-Y', '', 4), ('mz', '-Z', '', 5)]
+tag_enum_items = [('x', 'X', '', 0), ('y', 'Y', '', 1), ('z', 'Z', '', 2)]
 
 
 class RegisterBase(bpy.types.Operator):

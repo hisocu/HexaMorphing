@@ -1,37 +1,39 @@
 import bpy
 
 
-class HMControl(bpy.types.PropertyGroup):
+class TMControl(bpy.types.PropertyGroup):
     running = bpy.props.BoolProperty()
     rendering_only = bpy.props.BoolProperty(default=True)
-    interval = bpy.props.FloatProperty(
-        min=1. / 60., default=0.1, step=1, precision=3)
+    interval = bpy.props.FloatProperty(min=1. / 60., default=0.1, step=1, precision=3)
 
 
-class HMVertex(bpy.types.PropertyGroup):
+class TMVertex(bpy.types.PropertyGroup):
     co = bpy.props.FloatVectorProperty(subtype='XYZ')
 
 
-class HMBase(bpy.types.PropertyGroup):
-    use_opp_side = bpy.props.BoolProperty()
-    vertices = bpy.props.CollectionProperty(type=HMVertex)
+class TMBase(bpy.types.PropertyGroup):
+    vertices = bpy.props.CollectionProperty(type=TMVertex)
 
 
-class HMBases(bpy.types.PropertyGroup):
-    px = bpy.props.PointerProperty(type=HMBase)
-    mx = bpy.props.PointerProperty(type=HMBase)
-    py = bpy.props.PointerProperty(type=HMBase)
-    my = bpy.props.PointerProperty(type=HMBase)
-    pz = bpy.props.PointerProperty(type=HMBase)
-    mz = bpy.props.PointerProperty(type=HMBase)
+class TMBases(bpy.types.PropertyGroup):
+    x = bpy.props.PointerProperty(type=TMBase)
+    y = bpy.props.PointerProperty(type=TMBase)
+    z = bpy.props.PointerProperty(type=TMBase)
 
 
-class HMParam(bpy.types.PropertyGroup):
+class IntVal(bpy.types.PropertyGroup):
+    val = bpy.props.IntProperty()
+
+
+class IntCollection(bpy.types.PropertyGroup):
+    data = bpy.props.CollectionProperty(type=IntVal)
+
+
+class TMParam(bpy.types.PropertyGroup):
     enable = bpy.props.BoolProperty()
 
-    bases = bpy.props.PointerProperty(type=HMBases)
+    bases = bpy.props.PointerProperty(type=TMBases)
     dir_obj_name = bpy.props.StringProperty()
 
-    reversible = bpy.props.EnumProperty(
-        items=[('n', 'N', '', 0),
-               ('x', 'X', '', 1), ('y', 'Y', '', 2), ('z', 'Z', '', 3)])
+    reversible = bpy.props.EnumProperty(items=[('n', 'N', '', 0), ('x', 'X', '', 1), ('y', 'Y', '', 2), ('z', 'Z', '', 3)])
+    reference = bpy.props.EnumProperty(items=[('x', 'X', '', 1), ('y', 'Y', '', 2), ('z', 'Z', '', 3)])
